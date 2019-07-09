@@ -1,22 +1,64 @@
 import React from "react";
 import { Box, Button, Form, FormField, Grommet, Layer } from "grommet";
+
 import BudgetTable from "./BudgetTable";
 
 class BudgetForm extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      showModal: false,
+      showPurchaseEntryForm: false,
+      showNewBudgetForm: false,
 
       entryName: "",
       entryPrice: "",
       entryDate: new Date().toISOString().slice(0, 10),
 
-      purchaseEvents: []
+      purchaseEvents: [],
+
+      budget: ""
     };
 
     this.onChangeHandler = this.onChangeHandler.bind(this);
     this.formSubmitHandler = this.formSubmitHandler.bind(this);
+    this.deletePurchaseEntry = this.deletePurchaseEntry.bind(this);
+  }
+
+  componentDidMount() {
+    this.hydrateStateWithLocalStorage();
+
+    window.addEventListener(
+      "beforeunload",
+      this.saveStateToLocalStorage.bind(this)
+    );
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener(
+      "beforeunload",
+      this.saveStateToLocalStorage.bind(this)
+    );
+    this.saveStateToLocalStorage();
+  }
+
+  saveStateToLocalStorage() {
+    for (let key in this.state) {
+      localStorage.setItem(key, JSON.stringify(this.state[key]));
+    }
+  }
+
+  hydrateStateWithLocalStorage() {
+    for (let key in this.state) {
+      if (localStorage.hasOwnProperty(key)) {
+        let value = localStorage.getItem(key);
+        try {
+          value = JSON.parse(value);
+          this.setState({ [key]: value });
+        } catch (e) {
+          this.setState({ [key]: value });
+        }
+      }
+    }
   }
 
   onChangeHandler(event) {
@@ -49,11 +91,21 @@ class BudgetForm extends React.Component {
 
     // Reset the input fields / state. Except purchaseEvents!
     this.setState({
-      showModal: false,
+      showPurchaseEntryForm: false,
       entryName: "",
       entryPrice: "",
       entryDate: new Date().toISOString().slice(0, 10),
       purchaseEvents
+    });
+  }
+
+  deletePurchaseEntry(id) {
+    const purchaseEvents = [...this.state.purchaseEvents];
+    const updatedPurchaseEvents = purchaseEvents.filter(
+      purchase => purchase.id !== id
+    );
+    this.setState({
+      purchaseEvents: updatedPurchaseEvents
     });
   }
 
@@ -66,13 +118,46 @@ class BudgetForm extends React.Component {
           onClick={() => console.log(this.state.entryName)}
         /> */}
         <Button
-          label="Add New"
-          onClick={() => this.setState({ showModal: true })}
+          label="Add New Purchase"
+          onClick={() => this.setState({ showPurchaseEntryForm: true })}
         />
-        {this.state.showModal === true && (
+        <Button
+          label="Add New Budget"
+          onClick={() => this.setState({ showNewBudgetForm: true })}
+        />
+
+        {/* Show showNewBudgetForm*/}
+        {this.state.showNewBudgetForm === true && (
+          <Layer
+            onClickOutside={() => this.setState({ showNewBudgetForm: false })}
+          >
+            <Box
+              direction="column"
+              align="center"
+              border={{ color: "brand", size: "large" }}
+              pad="small"
+            >
+              <Form align="center">
+                <FormField
+                  type="number"
+                  name="budget"
+                  label="Budget (€)"
+                  value={this.state.budget}
+                  onChange={this.onChangeHandler}
+                />
+                <Button primary label="Save" color="accent-1" />
+              </Form>
+            </Box>
+          </Layer>
+        )}
+
+        {/* Show showPurchaseEntryForm*/}
+        {this.state.showPurchaseEntryForm === true && (
           <Layer
             style={{ borderRadius: "5px" }}
-            onClickOutside={() => this.setState({ showModal: false })}
+            onClickOutside={() =>
+              this.setState({ showPurchaseEntryForm: false })
+            }
           >
             <Box
               // draggable="true"
@@ -140,6 +225,7 @@ class BudgetForm extends React.Component {
           // purchasePrice={this.state.purchaseEvents.price}
           // purchaseDate={this.state.purchaseEvents.date}
           purchaseEvents={this.state.purchaseEvents}
+          deletePurchaseEntry={this.deletePurchaseEntry}
         />
       </Grommet>
     );
