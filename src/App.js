@@ -1,26 +1,30 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import "./App.css";
+import { Grommet } from "grommet";
+import BudgetForm from "./BudgetForm";
+// import BudgetTable from './BudgetTable'
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+class App extends React.Component {
+  constructor() {
+    super();
+    this.state = {
+      test: ''
+    }
+  }
+
+
+  render() {
+    return (
+      <Grommet>
+        <h1>React Budget App</h1>
+        <BudgetForm />
+        {/* <BudgetTable /> */}
+        {/* <input type="text" value={this.state.test} onChange={(event) => this.setState({test: event.target.value})} />
+        <button onClick={() => console.log(this.state.test)} >Click me</button> */}
+
+      </Grommet>
+    );
+  }
 }
 
 export default App;
